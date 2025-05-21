@@ -1,6 +1,7 @@
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import '../../index.css';
 import styles from './app.module.css';
+
 import {
   AppHeader,
   IngredientDetails,
@@ -19,11 +20,11 @@ import {
   ResetPassword
 } from '@pages';
 import { useEffect } from 'react';
-import { useDispatch } from '../../services/store';
-//import { ProtectedRoute } from '../protected-route/protected-route';
+import { useAppDispatch } from '../../services/store';
+import { ProtectedRoute } from '../protected-route/protected-route';
 
 const App = () => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const location = useLocation();
   const navigate = useNavigate();
   const background = location.state?.background;
@@ -32,69 +33,73 @@ const App = () => {
     <div className={styles.app}>
       <AppHeader />
       <Routes location={background || location}>
+        {/* Основные маршруты */}
         <Route path="/" element={<ConstructorPage />} />
         <Route path="/feed" element={<Feed />} />
         <Route path="/feed/:number" element={<OrderInfo />} />
         <Route path="/ingredients/:id" element={<IngredientDetails />} />
         
-        {/* Защищенные роуты */}
+        {/* Защищенные маршруты для неавторизованных */}
         <Route
           path="/login"
           element={
-            //<ProtectedRoute anonymous>
+            <ProtectedRoute onlyUnAuth>
               <Login />
-            //</ProtectedRoute>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/register"
           element={
-            //<ProtectedRoute anonymous>
+            <ProtectedRoute onlyUnAuth>
               <Register />
-            //</ProtectedRoute>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/forgot-password"
           element={
-            //<ProtectedRoute anonymous>
+            <ProtectedRoute onlyUnAuth>
               <ForgotPassword />
-            //</ProtectedRoute>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/reset-password"
           element={
-            //<ProtectedRoute anonymous>
+            <ProtectedRoute onlyUnAuth>
               <ResetPassword />
-            //</ProtectedRoute>
+            </ProtectedRoute>
           }
         />
+        
+        {/* Защищенные маршруты для авторизованных */}
         <Route
           path="/profile"
           element={
-            //<ProtectedRoute>
+            <ProtectedRoute>
               <Profile />
-            //</ProtectedRoute>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/profile/orders"
           element={
-            //<ProtectedRoute>
+            <ProtectedRoute>
               <ProfileOrders />
-            //</ProtectedRoute>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/profile/orders/:number"
           element={
-            //<ProtectedRoute>
+            <ProtectedRoute>
               <OrderInfo />
-            //</ProtectedRoute>
+            </ProtectedRoute>
           }
         />
         
+        {/* Маршрут для 404 */}
         <Route path="*" element={<NotFound404 />} />
       </Routes>
 
@@ -120,11 +125,11 @@ const App = () => {
           <Route
             path="/profile/orders/:number"
             element={
-              //<ProtectedRoute>
+              <ProtectedRoute>
                 <Modal title="Информация о заказе" onClose={() => navigate(-1)}>
                   <OrderInfo />
                 </Modal>
-              //</ProtectedRoute>
+              </ProtectedRoute>
             }
           />
         </Routes>
