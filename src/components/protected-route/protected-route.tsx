@@ -8,7 +8,7 @@ type TProtectedRoute = {
 };
 
 export const ProtectedRoute: FC<TProtectedRoute> = ({ onlyUnAuth = false, children }) => {
-  const user = useAppSelector((state) => state.auth.user);
+  const { user } = useAppSelector((state) => state.auth);
   const location = useLocation();
 
   if (onlyUnAuth && user) {
