@@ -23,7 +23,10 @@ export const constructorSlice = createSlice({
       state.items.bun = action.payload;
     },
     addIngredient: (state, action: PayloadAction<TConstructorIngredient>) => {
-      state.items.ingredients.push(action.payload);
+      state.items.ingredients.push({
+        ...action.payload,
+        id: `${action.payload._id}-${Date.now()}`
+      });
     },
     removeIngredient: (state, action: PayloadAction<string>) => {
       state.items.ingredients = state.items.ingredients.filter(
@@ -37,7 +40,8 @@ export const constructorSlice = createSlice({
     moveIngredient: (state, action: PayloadAction<{ from: number; to: number }>) => {
       const { from, to } = action.payload;
       const ingredients = [...state.items.ingredients];
-      const movedItem = ingredients.splice(from, 1)[0];
+      const movedItem = ingredients[from];
+      ingredients.splice(from, 1);
       ingredients.splice(to, 0, movedItem);
       state.items.ingredients = ingredients;
     }

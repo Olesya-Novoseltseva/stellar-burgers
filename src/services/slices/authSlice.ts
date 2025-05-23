@@ -1,4 +1,3 @@
-// slices/authSlice.ts
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { loginUserApi, registerUserApi, logoutApi, getUserApi, updateUserApi } from '../../utils/burger-api';
 import { setCookie, deleteCookie } from '../../utils/cookie';

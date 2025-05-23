@@ -1,48 +1,42 @@
-import { FC, useMemo, useCallback } from 'react';
-import { TConstructorIngredient } from '@utils-types';
-import { BurgerConstructorUI } from '@ui';
+import { FC, useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '../../services/store';
+import { 
+  selectBun,
+  selectIngredients,
+  selectOrderDetails,
+  selectTotalPrice
+} from '../../services/selectors';
 import { createOrder, resetOrderModal } from '../../services/slices/orderSlice';
 import { clearConstructor } from '../../services/slices/constructorSlice';
+import { BurgerConstructorUI } from '@ui';
+import { TConstructorIngredient } from '@utils-types';
 
 export const BurgerConstructor: FC = () => {
   const dispatch = useAppDispatch();
   
-  // Защищаемся от undefined с помощью значения по умолчанию
-  const constructorItems = useAppSelector(
-    (state) => state.constructor.items || { bun: null, ingredients: [] }
-  );
-  
-  const { orderRequest, orderModalData } = useAppSelector(
-    (state) => state.order
-  );
+  const bun = useAppSelector(selectBun);
+  const ingredients = useAppSelector(selectIngredients);
+  const { orderRequest, orderModalData, error } = useAppSelector(selectOrderDetails);
+  const totalPrice = useAppSelector(selectTotalPrice);
 
-  const canMakeOrder = Boolean(constructorItems.bun) && !orderRequest;
-
-  const totalPrice = useMemo(() => {
-    const bunPrice = constructorItems.bun ? constructorItems.bun.price * 2 : 0;
-    const ingredientsPrice = constructorItems.ingredients.reduce(
-      (sum: number, item: TConstructorIngredient) => sum + item.price,
-      0
-    );
-    return bunPrice + ingredientsPrice;
-  }, [constructorItems]);
+  const canMakeOrder = Boolean(bun) && !orderRequest;
 
   const handleOrderClick = useCallback(() => {
-    if (!canMakeOrder) return;
+    if (!canMakeOrder || !bun?.price) return;
     
     const ingredientsIds = [
-      constructorItems.bun?._id,
-      ...constructorItems.ingredients.map((item) => item._id),
-      constructorItems.bun?._id
-    ].filter(Boolean) as string[];
+      bun._id,
+      ...ingredients.map((item: TConstructorIngredient) => item._id),
+      bun._id
+    ];
 
     dispatch(createOrder(ingredientsIds))
       .unwrap()
       .then(() => {
         dispatch(clearConstructor());
-      });
-  }, [canMakeOrder, constructorItems, dispatch]);
+      })
+      .catch((err) => console.error('Order creation failed:', err));
+  }, [canMakeOrder, bun, ingredients, dispatch]);
 
   const handleCloseModal = useCallback(() => {
     dispatch(resetOrderModal());
@@ -52,8 +46,9 @@ export const BurgerConstructor: FC = () => {
     <BurgerConstructorUI
       price={totalPrice}
       orderRequest={orderRequest}
-      constructorItems={constructorItems}
+      constructorItems={{ bun, ingredients }}
       orderModalData={orderModalData}
+      error={error}
       onOrderClick={handleOrderClick}
       closeOrderModal={handleCloseModal}
     />

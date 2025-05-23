@@ -11,20 +11,20 @@ import { BurgerConstructorElement, Modal } from '@components';
 import { Preloader, OrderDetailsUI } from '@ui';
 
 export const BurgerConstructorUI: FC<BurgerConstructorUIProps> = ({
-  constructorItems = { bun: null, ingredients: [] }, // Значение по умолчанию
+  constructorItems = { bun: null, ingredients: [] },
   orderRequest = false,
   price = 0,
   orderModalData = null,
+  error = null,
   onOrderClick,
   closeOrderModal
 }) => {
-  // Защищаемся от undefined для ingredients
-  const ingredients = constructorItems?.ingredients || [];
-  
+  const ingredients = constructorItems.ingredients || [];
+
   return (
     <section className={styles.burger_constructor}>
       {/* Верхняя булка */}
-      {constructorItems?.bun ? (
+      {constructorItems.bun ? (
         <div className={`${styles.element} mb-4 mr-4`}>
           <ConstructorElement
             type='top'
@@ -35,9 +35,7 @@ export const BurgerConstructorUI: FC<BurgerConstructorUIProps> = ({
           />
         </div>
       ) : (
-        <div
-          className={`${styles.noBuns} ${styles.noBunsTop} ml-8 mb-4 mr-5 text text_type_main-default`}
-        >
+        <div className={`${styles.noBuns} ${styles.noBunsTop} ml-8 mb-4 mr-5 text text_type_main-default`}>
           Выберите булки
         </div>
       )}
@@ -45,27 +43,23 @@ export const BurgerConstructorUI: FC<BurgerConstructorUIProps> = ({
       {/* Начинка */}
       <ul className={styles.elements}>
         {ingredients.length > 0 ? (
-          ingredients.map(
-            (item: TConstructorIngredient, index: number) => (
-              <BurgerConstructorElement
-                ingredient={item}
-                index={index}
-                totalItems={ingredients.length}
-                key={item.id}
-              />
-            )
-          )
+          ingredients.map((item: TConstructorIngredient, index: number) => (
+            <BurgerConstructorElement
+              ingredient={item}
+              index={index}
+              totalItems={ingredients.length}
+              key={item.id}
+            />
+          ))
         ) : (
-          <div
-            className={`${styles.noBuns} ml-8 mb-4 mr-5 text text_type_main-default`}
-          >
+          <div className={`${styles.noBuns} ml-8 mb-4 mr-5 text text_type_main-default`}>
             Выберите начинку
           </div>
         )}
       </ul>
 
       {/* Нижняя булка */}
-      {constructorItems?.bun ? (
+      {constructorItems.bun ? (
         <div className={`${styles.element} mt-4 mr-4`}>
           <ConstructorElement
             type='bottom'
@@ -76,9 +70,7 @@ export const BurgerConstructorUI: FC<BurgerConstructorUIProps> = ({
           />
         </div>
       ) : (
-        <div
-          className={`${styles.noBuns} ${styles.noBunsBottom} ml-8 mb-4 mr-5 text text_type_main-default`}
-        >
+        <div className={`${styles.noBuns} ${styles.noBunsBottom} ml-8 mb-4 mr-5 text text_type_main-default`}>
           Выберите булки
         </div>
       )}
@@ -95,9 +87,16 @@ export const BurgerConstructorUI: FC<BurgerConstructorUIProps> = ({
           size='large'
           children='Оформить заказ'
           onClick={onOrderClick}
-          disabled={!constructorItems?.bun || orderRequest}
+          disabled={!constructorItems.bun || orderRequest}
         />
       </div>
+
+      {/* Сообщение об ошибке */}
+      {error && (
+        <p className={`${styles.error} text text_type_main-default mt-4`}>
+          {error}
+        </p>
+      )}
 
       {/* Модальные окна */}
       {orderRequest && (

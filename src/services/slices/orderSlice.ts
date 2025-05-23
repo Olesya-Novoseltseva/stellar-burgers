@@ -1,14 +1,14 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { orderBurgerApi } from '../../utils/burger-api';
-import { TOrder } from '../../utils/types';
+import { TOrder } from '@utils-types';
 
-interface IOrderState {
+interface OrderState {
   orderRequest: boolean;
   orderModalData: TOrder | null;
   error: string | null;
 }
 
-const initialState: IOrderState = {
+const initialState: OrderState = {
   orderRequest: false,
   orderModalData: null,
   error: null
@@ -19,9 +19,7 @@ export const createOrder = createAsyncThunk(
   async (ingredientsIds: string[], { rejectWithValue }) => {
     try {
       const response = await orderBurgerApi(ingredientsIds);
-      if (response.success) {
-        return response.order;
-      }
+      if (response.success) return response.order;
       return rejectWithValue('Ошибка при создании заказа');
     } catch (error) {
       return rejectWithValue((error as Error).message);
@@ -29,15 +27,12 @@ export const createOrder = createAsyncThunk(
   }
 );
 
-const orderSlice = createSlice({
+export const orderSlice = createSlice({
   name: 'order',
   initialState,
   reducers: {
     resetOrderModal: (state) => {
       state.orderModalData = null;
-      state.error = null;
-    },
-    clearOrderError: (state) => {
       state.error = null;
     }
   },
@@ -58,5 +53,5 @@ const orderSlice = createSlice({
   }
 });
 
-export const { resetOrderModal, clearOrderError } = orderSlice.actions;
+export const { resetOrderModal } = orderSlice.actions;
 export default orderSlice.reducer;

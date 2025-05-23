@@ -2,14 +2,13 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { getIngredientsApi } from '../../utils/burger-api';
 import { TIngredient } from '@utils-types';
 
-
-interface IIngredientsState {
+interface IngredientsState {
   items: TIngredient[];
   loading: boolean;
   error: string | null;
 }
 
-const initialState: IIngredientsState = {
+const initialState: IngredientsState = {
   items: [],
   loading: false,
   error: null
@@ -17,13 +16,17 @@ const initialState: IIngredientsState = {
 
 export const fetchIngredients = createAsyncThunk(
   'ingredients/fetchAll',
-  async () => {
-    const response = await getIngredientsApi();
-    return response;
+  async (_, { rejectWithValue }) => {
+    try {
+      const data = await getIngredientsApi();
+      return data;
+    } catch (error) {
+      return rejectWithValue((error as Error).message);
+    }
   }
 );
 
-const ingredientsSlice = createSlice({
+export const ingredientsSlice = createSlice({
   name: 'ingredients',
   initialState,
   reducers: {},
@@ -39,7 +42,7 @@ const ingredientsSlice = createSlice({
       })
       .addCase(fetchIngredients.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || 'Failed to fetch ingredients';
+        state.error = action.payload as string;
       });
   }
 });

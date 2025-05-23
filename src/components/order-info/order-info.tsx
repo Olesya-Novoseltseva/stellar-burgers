@@ -1,44 +1,45 @@
 import { FC, useMemo } from 'react';
 import { Preloader } from '../ui/preloader';
 import { OrderInfoUI } from '../ui/order-info';
-import { TIngredient } from '@utils-types';
+import { TIngredient, TOrder } from '@utils-types';
 import { useAppSelector } from '../../services/store';
+import {
+  selectCurrentOrder,
+  selectAllIngredients
+} from '../../services/selectors';
+
+type TIngredientWithCount = TIngredient & { count: number };
+type TIngredientsWithCount = Record<string, TIngredient & { count: number }>;
 
 export const OrderInfo: FC = () => {
-  const orderData = useAppSelector((state) => state.feed.currentOrder);
-  const ingredients = useAppSelector((state) => state.ingredients.items);
+  const orderData = useAppSelector(selectCurrentOrder);
+  const ingredients = useAppSelector(selectAllIngredients);
 
-  /* Готовим данные для отображения */
   const orderInfo = useMemo(() => {
     if (!orderData || !ingredients.length) return null;
 
     const date = new Date(orderData.createdAt);
 
-    type TIngredientsWithCount = {
-      [key: string]: TIngredient & { count: number };
-    };
-
+    // Явная типизация для reduce
     const ingredientsInfo = orderData.ingredients.reduce(
-      (acc: TIngredientsWithCount, item) => {
+      (acc: TIngredientsWithCount, item: string) => {
         if (!acc[item]) {
-          const ingredient = ingredients.find((ing) => ing._id === item);
+          const ingredient = ingredients.find((ing: TIngredient) => ing._id === item);
           if (ingredient) {
-            acc[item] = {
-              ...ingredient,
-              count: 1
-            };
+            acc[item] = { ...ingredient, count: 1 };
           }
         } else {
           acc[item].count++;
         }
-
         return acc;
       },
-      {}
+      {} as TIngredientsWithCount
     );
 
-    const total = Object.values(ingredientsInfo).reduce(
-      (acc, item) => acc + item.price * item.count,
+    /// Вычисляем общую стоимость
+    const ingredientValues = Object.values(ingredientsInfo) as TIngredientWithCount[];
+    const total = ingredientValues.reduce(
+      (sum, item) => sum + item.price * item.count,
       0
     );
 

@@ -1,8 +1,9 @@
-import { FC } from 'react';
-
+// feed-info.tsx
+import { FC, useMemo } from 'react';
 import { TOrder } from '@utils-types';
 import { FeedInfoUI } from '../ui/feed-info';
 import { useAppSelector } from '../../services/store';
+import { selectFeedOrders } from '../../services/selectors';
 
 const getOrders = (orders: TOrder[], status: string): number[] =>
   orders
@@ -11,12 +12,13 @@ const getOrders = (orders: TOrder[], status: string): number[] =>
     .slice(0, 20);
 
 export const FeedInfo: FC = () => {
-  const orders = useAppSelector((state) => state.feed.orders);
+  const orders = useAppSelector(selectFeedOrders);
   const feed = useAppSelector((state) => state.feed);
 
-  const readyOrders = getOrders(orders, 'done');
-
-  const pendingOrders = getOrders(orders, 'pending');
+  const [readyOrders, pendingOrders] = useMemo(() => [
+    getOrders(orders, 'done'),
+    getOrders(orders, 'pending')
+  ], [orders]);
 
   return (
     <FeedInfoUI
