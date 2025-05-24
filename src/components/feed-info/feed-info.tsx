@@ -1,4 +1,3 @@
-// feed-info.tsx
 import { FC, useMemo } from 'react';
 import { TOrder } from '@utils-types';
 import { FeedInfoUI } from '../ui/feed-info';

@@ -9,7 +9,8 @@ import {
   selectMains,
   selectSauces,
   selectIngredientsLoading,
-  selectIngredientsError
+  selectIngredientsError,
+  selectAllIngredients
 } from '../../services/selectors';
 
 export const BurgerIngredients: FC = () => {
@@ -19,27 +20,34 @@ export const BurgerIngredients: FC = () => {
   const sauces = useAppSelector(selectSauces);
   const loading = useAppSelector(selectIngredientsLoading);
   const error = useAppSelector(selectIngredientsError);
-
-  useEffect(() => {
-    dispatch(fetchIngredients())
-      .unwrap()
-      .catch(err => console.error('Failed to load ingredients:', err));
-  }, [dispatch]);
-
+  const ingredientsState = useAppSelector(state => state.ingredients);
+  
   const [currentTab, setCurrentTab] = useState<TTabMode>('bun');
   const titleBunRef = useRef<HTMLHeadingElement>(null);
   const titleMainRef = useRef<HTMLHeadingElement>(null);
   const titleSaucesRef = useRef<HTMLHeadingElement>(null);
+  
 
   const [bunsRef, inViewBuns] = useInView({ threshold: 0 });
   const [mainsRef, inViewFilling] = useInView({ threshold: 0 });
   const [saucesRef, inViewSauces] = useInView({ threshold: 0 });
 
   useEffect(() => {
+    console.log('Начало вызова fetchIngredients'); // Должен появиться в консоли
+    dispatch(fetchIngredients())
+      .unwrap()
+      .then(() => console.log('fetchIngredients завершился успешно'))
+      .catch((err) => console.error('Ошибка fetchIngredients:', err));
+  }, [dispatch]);
+
+  useEffect(() => {
     if (inViewBuns) setCurrentTab('bun');
     else if (inViewSauces) setCurrentTab('sauce');
     else if (inViewFilling) setCurrentTab('main');
   }, [inViewBuns, inViewFilling, inViewSauces]);
+
+  if (loading) return <div>Загрузка ингредиентов...</div>;
+  if (error) return <div>Ошибка: {error.toString()}</div>;
 
   const onTabClick = (tab: string) => {
     const refMap = {
@@ -51,9 +59,6 @@ export const BurgerIngredients: FC = () => {
     setCurrentTab(tab as TTabMode);
     refMap[tab as TTabMode].current?.scrollIntoView({ behavior: 'smooth' });
   };
-
-  if (loading) return <div>Загрузка ингредиентов...</div>;
-  if (error) return <div>Ошибка: {error.toString()}</div>;
 
   return (
     <BurgerIngredientsUI

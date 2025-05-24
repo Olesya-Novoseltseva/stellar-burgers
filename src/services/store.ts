@@ -5,6 +5,8 @@ import constructorReducer from './slices/constructorSlice';
 import authReducer from './slices/authSlice';
 import feedReducer from './slices/feedSlice';
 import orderReducer from './slices/orderSlice';
+import { TIngredient } from '../utils/types';
+import appSlice from './slices/appSlice';
 
 // Типы для начальных состояний каждого редьюсера
 const initialIngredientsState = {
@@ -51,6 +53,7 @@ const getSafeReducer = <T>(reducer: any, initialState: T) => {
 };
 
 const rootReducer = {
+  app: appSlice,
   ingredients: getSafeReducer(ingredientsReducer, initialIngredientsState),
   constructor: getSafeReducer(constructorReducer, initialConstructorState),
   auth: getSafeReducer(authReducer, initialAuthState),
@@ -78,6 +81,10 @@ export type RootState = ReturnType<typeof store.getState> & {
   auth: typeof initialAuthState;
   feed: typeof initialFeedState;
   order: typeof initialOrderState;
+  selected: {  // Добавьте это
+    bun: TIngredient | null;
+    ingredients: TIngredient[];
+  };
 };
 
 export type AppDispatch = typeof store.dispatch;

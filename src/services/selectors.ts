@@ -55,9 +55,17 @@ export const selectIngredientsState = (state: RootState) =>
 export const selectFeedState = (state: RootState) => 
   state.feed ?? DEFAULT_STATES.feed;
 
-
+export const selectAppInitialized = (state: RootState) => state.app.isInitialized;
+export const selectAppInitError = (state: RootState) => state.app.initError;
 // Оптимизированные селекторы для конструктора
 // Полностью безопасные селекторы для конструктора
+const EMPTY_CONSTRUCTOR = { bun: null, ingredients: [] };
+
+export const selectConstructorItems = createSelector(
+  (state: RootState) => state.selected,
+  (selected) => selected ?? EMPTY_CONSTRUCTOR
+);
+
 export const selectBun = createSelector(
   [selectConstructorState],
   (constructor) => constructor?.items?.bun ?? null
@@ -83,7 +91,7 @@ export const selectTotalPrice = createSelector(
 // Селекторы для ингредиентов
 export const selectAllIngredients = createSelector(
   [selectIngredientsState],
-  (ingredients) => ingredients.items
+  (ingredients) => ingredients?.items || []
 );
 
 export const selectBuns = createSelector(

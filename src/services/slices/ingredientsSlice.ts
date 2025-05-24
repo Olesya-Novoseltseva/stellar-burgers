@@ -38,7 +38,10 @@ export const ingredientsSlice = createSlice({
       })
       .addCase(fetchIngredients.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload;
+        // Обновляем только если данные изменились
+        if (JSON.stringify(state.items) !== JSON.stringify(action.payload)) {
+          state.items = action.payload;
+        }
       })
       .addCase(fetchIngredients.rejected, (state, action) => {
         state.loading = false;
