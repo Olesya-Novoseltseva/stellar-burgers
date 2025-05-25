@@ -33,14 +33,6 @@ export const BurgerIngredients: FC = () => {
   const [saucesRef, inViewSauces] = useInView({ threshold: 0 });
 
   useEffect(() => {
-    console.log('Начало вызова fetchIngredients'); // Должен появиться в консоли
-    dispatch(fetchIngredients())
-      .unwrap()
-      .then(() => console.log('fetchIngredients завершился успешно'))
-      .catch((err) => console.error('Ошибка fetchIngredients:', err));
-  }, [dispatch]);
-
-  useEffect(() => {
     if (inViewBuns) setCurrentTab('bun');
     else if (inViewSauces) setCurrentTab('sauce');
     else if (inViewFilling) setCurrentTab('main');
