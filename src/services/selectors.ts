@@ -1,6 +1,7 @@
 import { createSelector } from '@reduxjs/toolkit';
 import { RootState } from './store';
 import { TConstructorIngredient, TIngredient } from '@utils-types';
+import { initialState, IConstructorState } from './slices/constructorSlice';
 
 /*const DEFAULT_CONSTRUCTOR_STATE = {
   items: {
@@ -16,7 +17,7 @@ const DEFAULT_INGREDIENTS_STATE = {
 };*/
 
 // Полные дефолтные состояния для всех разделов хранилища
-const DEFAULT_STATES = {
+/*const DEFAULT_STATES = {
   constructor: {
     items: {
       bun: null as TConstructorIngredient | null,
@@ -40,20 +41,20 @@ const DEFAULT_STATES = {
     currentOrder: null as any
   }
 };
-
+*/
 
 // Базовые селекторы с защитой от undefined
-export const selectConstructorState = (state: RootState) => 
-  state.constructor ?? DEFAULT_STATES.constructor;
+export const selectConstructorState = (state: RootState): IConstructorState =>
+  state.constructor;
 
 export const selectOrderState = (state: RootState) => 
-  state.order ?? DEFAULT_STATES.order;
+  state.order;
 
 export const selectIngredientsState = (state: RootState) => 
-  state.ingredients ?? DEFAULT_STATES.ingredients;
+  state.ingredients;
 
 export const selectFeedState = (state: RootState) => 
-  state.feed ?? DEFAULT_STATES.feed;
+  state.feed;
 
 export const selectAppInitialized = (state: RootState) => state.app.isInitialized;
 export const selectAppInitError = (state: RootState) => state.app.initError;
@@ -61,19 +62,19 @@ export const selectAppInitError = (state: RootState) => state.app.initError;
 // Полностью безопасные селекторы для конструктора
 const EMPTY_CONSTRUCTOR = { bun: null, ingredients: [] };
 
-export const selectConstructorItems = createSelector(
+/*export const selectConstructorItems = createSelector(
   (state: RootState) => state.selected,
   (selected) => selected ?? EMPTY_CONSTRUCTOR
-);
+);*/
 
 export const selectBun = createSelector(
   [selectConstructorState],
-  (constructor) => constructor?.items?.bun ?? null
+  (constructor) => constructor?.burgerConstructor.bun ?? null
 );
 
 export const selectIngredients = createSelector(
   [selectConstructorState],
-  (constructor) => constructor?.items?.ingredients ?? []
+  (constructor) => constructor?.burgerConstructor.ingredients ?? []
 );
 
 export const selectTotalPrice = createSelector(
@@ -91,23 +92,33 @@ export const selectTotalPrice = createSelector(
 // Селекторы для ингредиентов
 export const selectAllIngredients = createSelector(
   [selectIngredientsState],
-  (ingredients) => ingredients?.items || []
+  (state): TIngredient[] => {
+    return Array.isArray(state?.items) ? state.items : [];
+  }
 );
+
 
 export const selectBuns = createSelector(
   [selectAllIngredients],
-  (ingredients) => ingredients.filter((item: TIngredient) => item.type === 'bun')
+  (ingredients: TIngredient[]) => Array.isArray(ingredients)
+    ? ingredients.filter((item: TIngredient) => item.type === 'bun')
+    : []
 );
 
 export const selectMains = createSelector(
   [selectAllIngredients],
-  (ingredients) => ingredients.filter((item: TIngredient) => item.type === 'main')
+  (ingredients: TIngredient[]) => Array.isArray(ingredients)
+    ? ingredients.filter((item: TIngredient) => item.type === 'main')
+    : []
 );
 
 export const selectSauces = createSelector(
   [selectAllIngredients],
-  (ingredients) => ingredients.filter((item: TIngredient) => item.type === 'sauce')
+  (ingredients: TIngredient[]) => Array.isArray(ingredients)
+    ? ingredients.filter((item: TIngredient) => item.type === 'sauce')
+    : []
 );
+
 
 export const selectIngredientById = createSelector(
   [selectAllIngredients, (_, id: string) => id],
