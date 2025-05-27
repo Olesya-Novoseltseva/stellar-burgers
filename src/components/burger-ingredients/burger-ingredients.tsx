@@ -1,15 +1,13 @@
 import { useState, useRef, useEffect, FC, useMemo } from 'react';
 import { useInView } from 'react-intersection-observer';
-import { TTabMode } from '@utils-types';
+import { TTabMode, TIngredient } from '@utils-types';
 import { BurgerIngredientsUI } from '@ui';
 import { useAppSelector } from '../../services/store';
-import {
-  selectBuns,
-  selectMains,
-  selectSauces,
+import { 
+  selectIngredients,
   selectIngredientsLoading,
   selectIngredientsError
-} from '../../services/selectors';
+} from '../../services/slices/ingredientsSlice';
 
 export const BurgerIngredients: FC = () => {
   const [currentTab, setCurrentTab] = useState<TTabMode>('bun');
@@ -18,13 +16,17 @@ export const BurgerIngredients: FC = () => {
   const titleSaucesRef = useRef<HTMLHeadingElement>(null);
 
   // Получаем данные из хранилища
-  const { buns, mains, sauces, loading, error } = useAppSelector(state => ({
-    buns: selectBuns(state),
-    mains: selectMains(state),
-    sauces: selectSauces(state),
-    loading: selectIngredientsLoading(state),
-    error: selectIngredientsError(state)
-  }));
+  const ingredients = useAppSelector(selectIngredients);
+  const loading = useAppSelector(selectIngredientsLoading);
+  const error = useAppSelector(selectIngredientsError);
+
+  // Фильтруем ингредиенты по типам
+  const [buns, mains, sauces] = useMemo(() => {
+    const buns = ingredients.filter((item: TIngredient) => item.type === 'bun');
+    const mains = ingredients.filter((item: TIngredient) => item.type === 'main');
+    const sauces = ingredients.filter((item: TIngredient) => item.type === 'sauce');
+    return [buns, mains, sauces];
+  }, [ingredients]);
 
   // Настройка отслеживания видимости разделов
   const [bunsRef, inViewBuns] = useInView({ threshold: 0.1 });
@@ -47,25 +49,26 @@ export const BurgerIngredients: FC = () => {
   }, [inViewBuns, inViewFilling, inViewSauces]);
 
   // Оптимизированный обработчик клика по табам
-  const onTabClick = useMemo(() => {
-    const refMap = {
-      bun: titleBunRef,
-      main: titleMainRef,
-      sauce: titleSaucesRef
-    };
+const onTabClick = useMemo(() => {
+  const refMap = {
+    bun: titleBunRef,
+    main: titleMainRef,
+    sauce: titleSaucesRef
+  };
 
-    return (tab: TTabMode) => {
-      setCurrentTab(tab);
-      refMap[tab].current?.scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'start'
-      });
-    };
-  }, []);
+  return (tab: string) => { 
+    const validTab = tab as TTabMode; 
+    setCurrentTab(validTab);
+    refMap[validTab].current?.scrollIntoView({ 
+      behavior: 'smooth',
+      block: 'start'
+    });
+  };
+}, []);
 
   // Состояния загрузки и ошибки
   if (loading) return <div className="loading-message">Загрузка ингредиентов...</div>;
-  if (error) return <div className="error-message">Ошибка: {error.toString()}</div>;
+  if (error) return <div className="error-message">Ошибка: {error}</div>;
 
   return (
     <BurgerIngredientsUI

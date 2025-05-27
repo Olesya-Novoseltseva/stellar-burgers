@@ -1,28 +1,32 @@
 import React, { FC, memo } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './burger-ingredient.module.css';
-
 import {
   Counter,
   CurrencyIcon,
   AddButton
 } from '@zlden/react-developer-burger-ui-components';
-
 import { TBurgerIngredientUIProps } from './type';
 
 export const BurgerIngredientUI: FC<TBurgerIngredientUIProps> = memo(
   ({ ingredient, count, handleAdd, locationState }) => {
-    const { image, price, name, _id } = ingredient;
+    const { image, price, name, _id, type } = ingredient;
 
     return (
-      <li className={styles.container}>
+      <li className={styles.container} data-cy={type} data-testid={`ingredient-${type}`}>
         <Link
           className={styles.article}
           to={`/ingredients/${_id}`}
           state={locationState}
+          aria-label={`Подробнее об ингредиенте ${name}`}
         >
-          {count && <Counter count={count} />}
-          <img className={styles.img} src={image} alt='картинка ингредиента.' />
+          {count ? <Counter count={count} /> : null}
+          <img 
+            className={styles.img} 
+            src={image} 
+            alt={name} 
+            loading="lazy"
+          />
           <div className={`${styles.cost} mt-2 mb-2`}>
             <p className='text text_type_digits-default mr-2'>{price}</p>
             <CurrencyIcon type='primary' />
@@ -33,6 +37,7 @@ export const BurgerIngredientUI: FC<TBurgerIngredientUIProps> = memo(
           text='Добавить'
           onClick={handleAdd}
           extraClass={`${styles.addButton} mt-8`}
+          aria-label={`Добавить ${name}`}
         />
       </li>
     );

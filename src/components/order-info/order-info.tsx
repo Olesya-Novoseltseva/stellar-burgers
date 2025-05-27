@@ -1,30 +1,37 @@
-import { FC, useMemo } from 'react';
+import { FC, useEffect, useMemo } from 'react';
+import { useParams } from 'react-router-dom';
 import { Preloader } from '../ui/preloader';
 import { OrderInfoUI } from '../ui/order-info';
-import { TIngredient, TOrder } from '@utils-types';
-import { useAppSelector } from '../../services/store';
-import {
-  selectCurrentOrder,
-  selectAllIngredients
-} from '../../services/selectors';
+import { TIngredient } from '@utils-types';
+import { useAppSelector, useAppDispatch } from '../../services/store';
+import { selectIngredients } from '../../services/slices/ingredientsSlice';
+import { getOrderByNumber, selectOrder } from '../../services/slices/orderSlice';
 
 type TIngredientWithCount = TIngredient & { count: number };
-type TIngredientsWithCount = Record<string, TIngredient & { count: number }>;
+type TIngredientsWithCount = Record<string, TIngredientWithCount>;
 
 export const OrderInfo: FC = () => {
-  const orderData = useAppSelector(selectCurrentOrder);
-  const ingredients = useAppSelector(selectAllIngredients);
+  const dispatch = useAppDispatch();
+  const { number } = useParams<{ number: string }>();
+
+  useEffect(() => {
+    if (number) {
+      dispatch(getOrderByNumber(Number(number)));
+    }
+  }, [dispatch, number]);
+
+  const orderData = useAppSelector(selectOrder);
+  const ingredients = useAppSelector(selectIngredients);
 
   const orderInfo = useMemo(() => {
     if (!orderData || !ingredients.length) return null;
 
     const date = new Date(orderData.createdAt);
 
-    // Явная типизация для reduce
-    const ingredientsInfo = orderData.ingredients.reduce(
-      (acc: TIngredientsWithCount, item: string) => {
+    const ingredientsInfo = orderData.ingredients.reduce<TIngredientsWithCount>(
+      (acc, item) => {
         if (!acc[item]) {
-          const ingredient = ingredients.find((ing: TIngredient) => ing._id === item);
+          const ingredient = ingredients.find((ing) => ing._id === item);
           if (ingredient) {
             acc[item] = { ...ingredient, count: 1 };
           }
@@ -33,12 +40,10 @@ export const OrderInfo: FC = () => {
         }
         return acc;
       },
-      {} as TIngredientsWithCount
+      {}
     );
 
-    /// Вычисляем общую стоимость
-    const ingredientValues = Object.values(ingredientsInfo) as TIngredientWithCount[];
-    const total = ingredientValues.reduce(
+    const total = Object.values(ingredientsInfo).reduce(
       (sum, item) => sum + item.price * item.count,
       0
     );

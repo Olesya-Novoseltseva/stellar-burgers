@@ -14,14 +14,18 @@ const initialState: IngredientsState = {
   error: null
 };
 
-export const fetchIngredients = createAsyncThunk(
+export const fetchIngredients = createAsyncThunk<
+  TIngredient[], // тип возвращаемого значения
+  void,          // тип аргумента
+  { rejectValue: string } // тип payload в случае ошибки
+>(
   'ingredients/fetchAll',
   async (_, { rejectWithValue }) => {
     try {
       const data = await getIngredientsApi();
       return data;
-    } catch (error) {
-      return rejectWithValue((error as Error).message);
+    } catch (error: any) {
+      return rejectWithValue(error?.message ?? 'Unknown error');
     }
   }
 );
@@ -29,6 +33,11 @@ export const fetchIngredients = createAsyncThunk(
 export const ingredientsSlice = createSlice({
   name: 'ingredients',
   initialState,
+  selectors: {
+    selectIngredients: (state) => state.items,
+    selectIngredientsLoading: (state) => state.loading,
+    selectIngredientsError: (state) => state.error
+  },
   reducers: {},
   extraReducers: (builder) => {
     builder
@@ -45,9 +54,18 @@ export const ingredientsSlice = createSlice({
       })
       .addCase(fetchIngredients.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload as string;
+        state.error = typeof action.payload === 'string'
+          ? action.payload
+          : 'Произошла ошибка при загрузке ингредиентов';
       });
   }
 });
+
+// Экспорт селекторов
+export const {
+  selectIngredients,
+  selectIngredientsLoading,
+  selectIngredientsError
+} = ingredientsSlice.selectors;
 
 export default ingredientsSlice.reducer;

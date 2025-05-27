@@ -1,33 +1,35 @@
 import { forwardRef, useMemo } from 'react';
 import { TIngredientsCategoryProps } from './type';
-import { TIngredient } from '@utils-types';
 import { IngredientsCategoryUI } from '../ui/ingredients-category';
 import { useAppSelector } from '../../services/store';
-import { 
-  selectBun, 
-  selectIngredients,
-} from '../../services/selectors';
+import { burgerConstructorSelector } from '../../services/slices/constructorSlice';
 
 export const IngredientsCategory = forwardRef<
   HTMLUListElement,
   TIngredientsCategoryProps
 >(({ title, titleRef, ingredients }, ref) => {
-  const bun = useAppSelector(selectBun);
-  const constructorIngredients = useAppSelector(selectIngredients);
+  const constructorState = useAppSelector(burgerConstructorSelector);
 
   const ingredientsCounters = useMemo(() => {
     const counters: Record<string, number> = {};
     
-    constructorIngredients.forEach((ingredient: TIngredient) => {
-      counters[ingredient._id] = (counters[ingredient._id] || 0) + 1;
+    const bun = constructorState?.bun;
+    const constructorIngredients = constructorState?.ingredients || [];
+
+    constructorIngredients.forEach((ingredient) => {
+      if (ingredient?._id) {
+        counters[ingredient._id] = (counters[ingredient._id] || 0) + 1;
+      }
     });
 
-    if (bun) {
+    if (bun?._id) {
       counters[bun._id] = 2;
     }
 
     return counters;
-  }, [bun, constructorIngredients]);
+  }, [constructorState]);
+
+  if (!ingredients) return null;
 
   return (
     <IngredientsCategoryUI

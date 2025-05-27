@@ -3,6 +3,29 @@ import { loginUserApi, registerUserApi, logoutApi, getUserApi, updateUserApi, ge
 import { setCookie, deleteCookie } from '../../utils/cookie';
 import { TUser, TOrder } from '../../utils/types';
 
+// Типы для API ответов
+interface AuthResponse {
+  success: boolean;
+  user: TUser;
+  accessToken: string;
+  refreshToken: string;
+}
+
+interface OrdersResponse {
+  success: boolean;
+  orders: TOrder[];
+}
+
+interface UserResponse {
+  success: boolean;
+  user: TUser;
+}
+
+interface DefaultResponse {
+  success: boolean;
+  message?: string;
+}
+
 interface IAuthState {
   user: TUser | null;
   isAuthenticated: boolean;
@@ -10,7 +33,6 @@ interface IAuthState {
   orders: TOrder[];
   ordersRequest: boolean;
   error: string | null;
-  isAuthChecked: boolean;
 }
 
 export const initialState: IAuthState = {
@@ -19,67 +41,117 @@ export const initialState: IAuthState = {
   isLoading: false,
   orders: [],
   ordersRequest: false,
-  error: null,
-  isAuthChecked: false
+  error: null
 };
 
-// Вспомогательная функция для обработки токена
-const processToken = (token: string) => {
+const processToken = (token: string): string => {
   return token.startsWith('Bearer ') ? token.split('Bearer ')[1] : token;
 };
 
-export const registerUser = createAsyncThunk(
+export const registerUser = createAsyncThunk<TUser, { email: string; password: string; name: string }, { rejectValue: string }>(
   'auth/register',
-  async (userData: { email: string; password: string; name: string }) => {
-    const response = await registerUserApi(userData);
-    setCookie('accessToken', processToken(response.accessToken));
-    localStorage.setItem('refreshToken', response.refreshToken);
-    return response.user;
+  async (userData, { rejectWithValue }) => {
+    try {
+      const response = await registerUserApi(userData) as AuthResponse;
+      if (!response.success) {
+        return rejectWithValue('Ошибка регистрации');
+      }
+      setCookie('accessToken', processToken(response.accessToken));
+      localStorage.setItem('refreshToken', response.refreshToken);
+      return response.user;
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Unknown error occurred');
+    }
   }
 );
 
-export const loginUser = createAsyncThunk(
+export const loginUser = createAsyncThunk<TUser, { email: string; password: string }, { rejectValue: string }>(
   'auth/login',
-  async (userData: { email: string; password: string }) => {
-    const response = await loginUserApi(userData);
-    setCookie('accessToken', processToken(response.accessToken));
-    localStorage.setItem('refreshToken', response.refreshToken);
-    return response.user;
+  async (userData, { rejectWithValue }) => {
+    try {
+      const response = await loginUserApi(userData) as AuthResponse;
+      if (!response.success) {
+        return rejectWithValue('Ошибка авторизации');
+      }
+      setCookie('accessToken', processToken(response.accessToken));
+      localStorage.setItem('refreshToken', response.refreshToken);
+      return response.user;
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Unknown error occurred');
+    }
   }
 );
 
-export const logoutUser = createAsyncThunk('auth/logout', async () => {
-  await logoutApi();
-  deleteCookie('accessToken');
-  localStorage.removeItem('refreshToken');
-});
+export const logoutUser = createAsyncThunk<void, void, { rejectValue: string }>(
+  'auth/logout',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await logoutApi() as DefaultResponse;
+      if (!response.success) {
+        return rejectWithValue(response.message || 'Ошибка выхода');
+      }
+      deleteCookie('accessToken');
+      localStorage.removeItem('refreshToken');
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Unknown error occurred');
+    }
+  }
+);
 
-export const checkUserAuth = createAsyncThunk('auth/checkAuth', async () => {
-  const response = await getUserApi();
-  return response.user;
-});
+export const checkUserAuth = createAsyncThunk<TUser, void, { rejectValue: string }>(
+  'auth/checkAuth',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await getUserApi() as UserResponse;
+      if (!response.success) {
+        return rejectWithValue('Ошибка проверки авторизации');
+      }
+      return response.user;
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Unknown error occurred');
+    }
+  }
+);
 
-export const updateUser = createAsyncThunk(
+export const updateUser = createAsyncThunk<TUser, { email: string; password?: string; name: string }, { rejectValue: string }>(
   'auth/updateUser',
-  async (userData: { email: string; password?: string; name: string }) => {
-    const response = await updateUserApi(userData);
-    return response.user;
+  async (userData, { rejectWithValue }) => {
+    try {
+      const response = await updateUserApi(userData) as UserResponse;
+      if (!response.success) {
+        return rejectWithValue('Ошибка обновления данных');
+      }
+      return response.user;
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Unknown error occurred');
+    }
   }
 );
 
-export const getOrders = createAsyncThunk(
+export const getOrders = createAsyncThunk<TOrder[], void, { rejectValue: string }>(
   'auth/getOrders',
-  async () => {
-    const response = await getOrdersApi();
-    return response.orders;
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await getOrdersApi() as unknown as OrdersResponse;
+      if (!response.success) {
+        return rejectWithValue('Ошибка получения заказов');
+      }
+      return response.orders;
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error ? error.message : 'Unknown error occurred'
+      );
+    }
   }
 );
+
+
 
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    clearError(state) {
+    clearError: (state) => {
       state.error = null;
     },
   },
@@ -90,14 +162,14 @@ const authSlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(registerUser.fulfilled, (state, action) => {
+      .addCase(registerUser.fulfilled, (state, action: PayloadAction<TUser>) => {
         state.user = action.payload;
         state.isAuthenticated = true;
         state.isLoading = false;
       })
-      .addCase(registerUser.rejected, (state, action) => {
+      .addCase(registerUser.rejected, (state, action: PayloadAction<string | undefined>) => {
         state.isLoading = false;
-        state.error = action.error.message || 'Ошибка регистрации';
+        state.error = action.payload || 'Ошибка регистрации';
       })
 
       // Авторизация
@@ -105,14 +177,14 @@ const authSlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(loginUser.fulfilled, (state, action) => {
+      .addCase(loginUser.fulfilled, (state, action: PayloadAction<TUser>) => {
         state.user = action.payload;
         state.isAuthenticated = true;
         state.isLoading = false;
       })
-      .addCase(loginUser.rejected, (state, action) => {
+      .addCase(loginUser.rejected, (state, action: PayloadAction<string | undefined>) => {
         state.isLoading = false;
-        state.error = action.error.message || 'Ошибка авторизации';
+        state.error = action.payload || 'Ошибка авторизации';
       })
 
       // Выход
@@ -125,50 +197,50 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.orders = [];
       })
-      .addCase(logoutUser.rejected, (state, action) => {
+      .addCase(logoutUser.rejected, (state, action: PayloadAction<string | undefined>) => {
         state.isLoading = false;
-        state.error = action.error.message || 'Ошибка выхода';
+        state.error = action.payload || 'Ошибка выхода';
       })
 
       // Проверка авторизации
       .addCase(checkUserAuth.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(checkUserAuth.fulfilled, (state, action) => {
+      .addCase(checkUserAuth.fulfilled, (state, action: PayloadAction<TUser>) => {
         state.user = action.payload;
-        state.isAuthenticated = !!action.payload;
+        state.isAuthenticated = true;
         state.isLoading = false;
       })
-      .addCase(checkUserAuth.rejected, (state, action) => {
+      .addCase(checkUserAuth.rejected, (state, action: PayloadAction<string | undefined>) => {
         state.isLoading = false;
-        state.error = action.error.message || 'Ошибка проверки авторизации';
+        state.error = action.payload || 'Ошибка проверки авторизации';
       })
 
-      // Обновление данных пользователя
+      // Обновление данных
       .addCase(updateUser.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(updateUser.fulfilled, (state, action) => {
+      .addCase(updateUser.fulfilled, (state, action: PayloadAction<TUser>) => {
         state.user = action.payload;
         state.isLoading = false;
       })
-      .addCase(updateUser.rejected, (state, action) => {
+      .addCase(updateUser.rejected, (state, action: PayloadAction<string | undefined>) => {
         state.isLoading = false;
-        state.error = action.error.message || 'Ошибка обновления данных';
+        state.error = action.payload || 'Ошибка обновления данных';
       })
 
       // Получение заказов
       .addCase(getOrders.pending, (state) => {
         state.ordersRequest = true;
       })
-      .addCase(getOrders.fulfilled, (state, action) => {
+      .addCase(getOrders.fulfilled, (state, action: PayloadAction<TOrder[]>) => {
         state.orders = action.payload;
         state.ordersRequest = false;
       })
-      .addCase(getOrders.rejected, (state, action) => {
+      .addCase(getOrders.rejected, (state, action: PayloadAction<string | undefined>) => {
         state.ordersRequest = false;
-        state.error = action.error.message || 'Ошибка получения заказов';
+        state.error = action.payload || 'Ошибка получения заказов';
       });
   },
   selectors: {

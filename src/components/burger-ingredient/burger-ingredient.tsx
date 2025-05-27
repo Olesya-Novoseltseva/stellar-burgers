@@ -1,27 +1,29 @@
-import { FC, memo, useCallback } from 'react';
+import { FC, memo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { BurgerIngredientUI } from '@ui';
 import { TBurgerIngredientProps } from './type';
 import { useAppDispatch } from '../../services/store';
 import { constructorActions } from '../../services/slices/constructorSlice';
-import { TIngredient } from '@utils-types';
+import { v4 as uuidv4 } from 'uuid';
 
 export const BurgerIngredient: FC<TBurgerIngredientProps> = memo(
   ({ ingredient, count }) => {
     const location = useLocation();
     const dispatch = useAppDispatch();
 
-    const handleAdd = useCallback(() => {
-      const ingredientWithId: TIngredient & { id?: string } = { ...ingredient };
+    const handleAdd = () => {
+      // Создаем новый объект с добавленным id
+      const ingredientWithId = {
+        ...ingredient,
+        id: uuidv4()
+      };
       
       if (ingredient.type === 'bun') {
-        dispatch(constructorActions.addBun(ingredientWithId));
+        dispatch(constructorActions.addBun(ingredient));
       } else {
-        // Генерируем уникальный ID только для не-булок
-        ingredientWithId.id = `${ingredient._id}-${Date.now()}`;
-        dispatch(constructorActions.addIngredient(ingredientWithId as Required<typeof ingredientWithId>));
+        dispatch(constructorActions.addIngredient(ingredientWithId));
       }
-    }, [dispatch, ingredient]);
+    };
 
     return (
       <BurgerIngredientUI
