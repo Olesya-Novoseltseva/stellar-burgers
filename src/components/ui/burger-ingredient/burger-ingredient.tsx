@@ -10,23 +10,17 @@ import { TBurgerIngredientUIProps } from './type';
 
 export const BurgerIngredientUI: FC<TBurgerIngredientUIProps> = memo(
   ({ ingredient, count, handleAdd, locationState }) => {
-    const { image, price, name, _id, type } = ingredient;
+    const { image, price, name, _id } = ingredient;
 
     return (
-      <li className={styles.container} data-cy={type} data-testid={`ingredient-${type}`}>
+      <li className={styles.container}>
         <Link
           className={styles.article}
           to={`/ingredients/${_id}`}
           state={locationState}
-          aria-label={`Подробнее об ингредиенте ${name}`}
         >
-          {count ? <Counter count={count} /> : null}
-          <img 
-            className={styles.img} 
-            src={image} 
-            alt={name} 
-            loading="lazy"
-          />
+          {count && <Counter count={count} />}
+          <img className={styles.img} src={image} alt='картинка ингредиента.' />
           <div className={`${styles.cost} mt-2 mb-2`}>
             <p className='text text_type_digits-default mr-2'>{price}</p>
             <CurrencyIcon type='primary' />
@@ -37,7 +31,6 @@ export const BurgerIngredientUI: FC<TBurgerIngredientUIProps> = memo(
           text='Добавить'
           onClick={handleAdd}
           extraClass={`${styles.addButton} mt-8`}
-          aria-label={`Добавить ${name}`}
         />
       </li>
     );
