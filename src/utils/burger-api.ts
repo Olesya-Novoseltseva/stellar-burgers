@@ -3,7 +3,6 @@ import { TIngredient, TOrder, TOrdersData, TUser } from './types';
 
 const URL = process.env.REACT_APP_BURGER_API_URL;
 
-
 const checkResponse = <T>(res: Response): Promise<T> =>
   res.ok ? res.json() : res.json().then((err) => Promise.reject(err));
 
@@ -62,7 +61,7 @@ type TIngredientsResponse = TServerResponse<{
   data: TIngredient[];
 }>;
 
-type TFeedsResponse = TServerResponse<{
+export type TFeedsResponse = TServerResponse<{
   orders: TOrder[];
   total: number;
   totalToday: number;
@@ -72,30 +71,13 @@ type TOrdersResponse = TServerResponse<{
   data: TOrder[];
 }>;
 
-export const getIngredientsApi = () => {
-  if (!URL) {
-    console.error('API URL is not configured!');
-    return Promise.reject(new Error('API URL not configured'));
-  }
-
-  return fetch(`${URL}/ingredients`)
-    .then((res) => {
-      console.log('Ingredients API response status:', res.status);
-      return checkResponse<TIngredientsResponse>(res);
-    })
+export const getIngredientsApi = () =>
+  fetch(`${URL}/ingredients`)
+    .then((res) => checkResponse<TIngredientsResponse>(res))
     .then((data) => {
-      console.log('Ingredients API data:', data);
-      if (!data?.success || !Array.isArray(data.data)) {
-        console.error('Invalid ingredients data format:', data);
-        return Promise.reject(new Error('Invalid data format'));
-      }
-      return data.data;
-    })
-    .catch((err) => {
-      console.error('Failed to fetch ingredients:', err);
-      return Promise.reject(err);
+      if (data?.success) return data.data;
+      return Promise.reject(data);
     });
-};
 
 export const getFeedsApi = () =>
   fetch(`${URL}/orders/all`)
@@ -117,7 +99,7 @@ export const getOrdersApi = () =>
     return Promise.reject(data);
   });
 
-type TNewOrderResponse = TServerResponse<{
+export type TNewOrderResponse = TServerResponse<{
   order: TOrder;
   name: string;
 }>;
@@ -178,6 +160,11 @@ export const registerUserApi = (data: TRegisterData) =>
 export type TLoginData = {
   email: string;
   password: string;
+};
+
+export type TResetPasswordData = {
+  password: string;
+  token: string;
 };
 
 export const loginUserApi = (data: TLoginData) =>

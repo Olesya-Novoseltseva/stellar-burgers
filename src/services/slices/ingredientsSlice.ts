@@ -1,71 +1,59 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { getIngredientsApi } from '../../utils/burger-api';
+import { getIngredientsApi } from '@api';
 import { TIngredient } from '@utils-types';
 
-interface IngredientsState {
-  items: TIngredient[];
-  loading: boolean;
+export interface IngredientsState {
+  ingredients: TIngredient[];
+  isLoading: boolean;
   error: string | null;
 }
 
-const initialState: IngredientsState = {
-  items: [],
-  loading: false,
+export const initialState: IngredientsState = {
+  ingredients: [],
+  isLoading: false,
   error: null
 };
 
-export const fetchIngredients = createAsyncThunk<
-  TIngredient[], // тип возвращаемого значения
-  void,          // тип аргумента
-  { rejectValue: string } // тип payload в случае ошибки
->(
-  'ingredients/fetchAll',
-  async (_, { rejectWithValue }) => {
-    try {
-      const data = await getIngredientsApi();
-      return data;
-    } catch (error: any) {
-      return rejectWithValue(error?.message ?? 'Unknown error');
-    }
+export const fetchIngredients = createAsyncThunk<TIngredient[]>(
+  'ingredients/fetchIngredients',
+  async () => {
+    const ingredients = await getIngredientsApi();
+    return ingredients;
   }
 );
 
-export const ingredientsSlice = createSlice({
+const ingredientsSlice = createSlice({
   name: 'ingredients',
   initialState,
-  selectors: {
-    selectIngredients: (state) => state.items,
-    selectIngredientsLoading: (state) => state.loading,
-    selectIngredientsError: (state) => state.error
-  },
   reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(fetchIngredients.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+        state.isLoading = true;
       })
       .addCase(fetchIngredients.fulfilled, (state, action) => {
-        state.loading = false;
-        // Обновляем только если данные изменились
-        if (JSON.stringify(state.items) !== JSON.stringify(action.payload)) {
-          state.items = action.payload;
-        }
+        state.isLoading = false;
+        state.ingredients = action.payload;
+        state.error = null;
       })
       .addCase(fetchIngredients.rejected, (state, action) => {
-        state.loading = false;
-        state.error = typeof action.payload === 'string'
-          ? action.payload
-          : 'Произошла ошибка при загрузке ингредиентов';
+        state.isLoading = false;
+        state.error =
+          action.error.message || 'Не удалось загрузить ингредиенты';
       });
+  },
+  selectors: {
+    getIngredients: (state) => state.ingredients,
+    getBuns: (state) =>
+      state.ingredients.filter((ingredient) => ingredient.type === 'bun'),
+    getMains: (state) =>
+      state.ingredients.filter((ingredient) => ingredient.type === 'main'),
+    getSauces: (state) =>
+      state.ingredients.filter((ingredient) => ingredient.type === 'sauce')
   }
 });
 
-// Экспорт селекторов
-export const {
-  selectIngredients,
-  selectIngredientsLoading,
-  selectIngredientsError
-} = ingredientsSlice.selectors;
+export const { getIngredients, getBuns, getMains, getSauces } =
+  ingredientsSlice.selectors;
 
 export default ingredientsSlice.reducer;

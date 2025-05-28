@@ -3,25 +3,17 @@ import { useLocation } from 'react-router-dom';
 import { BurgerIngredientUI } from '@ui';
 import { TBurgerIngredientProps } from './type';
 import { useAppDispatch } from '../../services/store';
-import { constructorActions } from '../../services/slices/constructorSlice';
-import { v4 as uuidv4 } from 'uuid';
+import { addIngredient, addBun } from '../../services/slices/constructorSlice';
 
 export const BurgerIngredient: FC<TBurgerIngredientProps> = memo(
   ({ ingredient, count }) => {
     const location = useLocation();
     const dispatch = useAppDispatch();
-
     const handleAdd = () => {
-      // Создаем новый объект с добавленным id
-      const ingredientWithId = {
-        ...ingredient,
-        id: uuidv4()
-      };
-      
-      if (ingredient.type === 'bun') {
-        dispatch(constructorActions.addBun(ingredient));
+      if (ingredient.type == 'bun') {
+        dispatch(addBun(ingredient));
       } else {
-        dispatch(constructorActions.addIngredient(ingredientWithId));
+        dispatch(addIngredient(ingredient));
       }
     };
 

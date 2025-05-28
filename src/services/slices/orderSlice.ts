@@ -1,98 +1,102 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { orderBurgerApi, getOrderByNumberApi } from '../../utils/burger-api';
-import { TOrder } from '@utils-types';
+import { TOrder, TOrdersData } from '../../utils/types';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { getFeedsApi, getOrderByNumberApi } from '../../utils/burger-api';
 
-interface OrderState {
-  order: TOrder | null;
-  isOrderLoading: boolean;
+export interface OrderState {
+  isFeedLoading: boolean;
+  isShownLoading: boolean;
+  feedOrders: TOrder[];
+  shownOrders: TOrder[];
   error: string | null;
+  total: number | null;
+  totalToday: number | null;
+  orderStatus: string;
 }
 
-const initialState: OrderState = {
-  order: null,
-  isOrderLoading: false,
-  error: null
+export const initialState: OrderState = {
+  isFeedLoading: false,
+  isShownLoading: false,
+  feedOrders: [],
+  shownOrders: [],
+  error: null,
+  total: null,
+  totalToday: null,
+  orderStatus: ''
 };
 
-// Объявляем getOrderByNumber один раз и экспортируем сразу
+export const fetchOrders = createAsyncThunk<TOrdersData>(
+  'orders/getFeedsApi',
+  async () => {
+    const result = await getFeedsApi();
+    return result;
+  }
+);
+
 export const getOrderByNumber = createAsyncThunk(
-  'order/getByNumber',
+  'orders/getOrderByNumberApi',
   async (number: number, { rejectWithValue }) => {
-    try {
-      const response = await getOrderByNumberApi(number);
-      if (!response.success) {
-        return rejectWithValue('Ошибка при получении заказа');
-      }
-      return response.orders[0];
-    } catch (error) {
-      if (error instanceof Error) {
-        return rejectWithValue(error.message);
-      }
-      return rejectWithValue('An unknown error occurred');
+    const response = await getOrderByNumberApi(number);
+    if (!response?.success) {
+      return rejectWithValue(response);
     }
+    return response.orders;
   }
 );
 
-export const createOrder = createAsyncThunk(
-  'order/create',
-  async (ingredientsIds: string[], { rejectWithValue }) => {
-    try {
-      const response = await orderBurgerApi(ingredientsIds);
-      if (!response.success) {
-        return rejectWithValue('Ошибка при создании заказа');
-      }
-      return response.order;
-    } catch (error) {
-      return rejectWithValue((error as Error).message);
-    }
-  }
-);
-
-export const orderSlice = createSlice({
-  name: 'order',
+const orderSlice = createSlice({
+  name: 'orders',
   initialState,
-  selectors: {
-    selectOrder: (state) => state.order,
-    selectOrderLoading: (state) => state.isOrderLoading,
-    selectOrderError: (state) => state.error
-  },
-  reducers: {
-    clearOrder: (state) => {
-      state.order = null;
-      state.isOrderLoading = false;
-      state.error = null;
-    }
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(createOrder.pending, (state) => {
-        state.isOrderLoading = true;
+      .addCase(fetchOrders.pending, (state) => {
+        state.isFeedLoading = true;
+      })
+      .addCase(fetchOrders.fulfilled, (state, action) => {
+        state.isFeedLoading = false;
+        state.feedOrders = action.payload.orders;
+        state.total = action.payload.total;
+        state.totalToday = action.payload.totalToday;
         state.error = null;
       })
-      .addCase(createOrder.fulfilled, (state, action: PayloadAction<TOrder>) => {
-        state.isOrderLoading = false;
-        state.order = action.payload;
-      })
-      .addCase(createOrder.rejected, (state, action) => {
-        state.isOrderLoading = false;
-        state.error = action.payload as string;
+      .addCase(fetchOrders.rejected, (state, action) => {
+        state.isFeedLoading = false;
+        state.error = action.error.message || 'Не удалось загрузить заказы';
       })
       .addCase(getOrderByNumber.pending, (state) => {
-        state.isOrderLoading = true;
+        state.isShownLoading = true;
+      })
+      .addCase(getOrderByNumber.fulfilled, (state, action) => {
+        state.isShownLoading = false;
+        state.shownOrders = action.payload;
+        if (action.payload) {
+          state.orderStatus = action.payload[0].status;
+        }
         state.error = null;
       })
-      .addCase(getOrderByNumber.fulfilled, (state, action: PayloadAction<TOrder>) => {
-        state.isOrderLoading = false;
-        state.order = action.payload;
-      })
       .addCase(getOrderByNumber.rejected, (state, action) => {
-        state.isOrderLoading = false;
-        state.error = action.payload as string;
+        state.isShownLoading = false;
+        state.error = action.error.message || 'Не удалось загрузить заказ';
       });
+  },
+  selectors: {
+    getFeedOrders: (state) => state.feedOrders,
+    getShownOrders: (state) => state.shownOrders,
+    getIsFeedLoading: (state) => state.isFeedLoading,
+    getIsShownLoading: (state) => state.isShownLoading,
+    getTotal: (state) => state.total,
+    getTotalToday: (state) => state.totalToday,
+    getOrderStatus: (state) => state.orderStatus
   }
 });
 
-// Экспортируем только то, что нужно
-export const { clearOrder } = orderSlice.actions;
-export const { selectOrder, selectOrderLoading, selectOrderError } = orderSlice.selectors;
 export default orderSlice.reducer;
+export const {
+  getFeedOrders,
+  getShownOrders,
+  getIsFeedLoading,
+  getIsShownLoading,
+  getTotal,
+  getTotalToday,
+  getOrderStatus
+} = orderSlice.selectors;

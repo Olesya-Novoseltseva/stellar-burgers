@@ -1,11 +1,13 @@
-import { FC } from 'react';
+import { FC, SyntheticEvent } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useAppDispatch } from '../../services/store';
 import { ProfileMenuUI } from '@ui';
-import { logoutUser } from '../../services/slices/authSlice';
+import { logoutUser } from '../../services/slices/profileSlice';
+import { useAppDispatch } from '../../services/store';
+import { AppDispatch } from '../../services/store';
 
 export const ProfileMenu: FC = () => {
   const { pathname } = useLocation();
+
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 

@@ -1,15 +1,14 @@
 import { useAppSelector } from '../../services/store';
-//import { selectIngredientsLoading } from '../../services/selectors';
 
 import styles from './constructor-page.module.css';
-import {selectIngredientsLoading} from '../../services/slices/ingredientsSlice';
+
 import { BurgerIngredients } from '../../components';
 import { BurgerConstructor } from '../../components';
 import { Preloader } from '../../components/ui';
 import { FC } from 'react';
 
 export const ConstructorPage: FC = () => {
-  const isIngredientsLoading = useAppSelector(selectIngredientsLoading);
+  const isIngredientsLoading = false;
 
   return (
     <>
@@ -24,7 +23,7 @@ export const ConstructorPage: FC = () => {
           </h1>
           <div className={`${styles.main} pl-5 pr-5`}>
             <BurgerIngredients />
-            <BurgerConstructor />
+            <BurgerConstructor data-cy='constructor' />
           </div>
         </main>
       )}
