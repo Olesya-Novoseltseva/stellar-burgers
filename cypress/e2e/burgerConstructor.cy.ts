@@ -1,89 +1,132 @@
-///<reference types = "cypress"/>
+/// <reference types="cypress" />
 
-describe('добавление ингредиента', function () {
-  beforeEach(function () {
-    cy.intercept('GET', 'api/ingredients', { fixture: 'ingredients.json' });
-    cy.viewport(1920, 1080);
-    cy.visit('http://localhost:4000');
-  });
-  it('добавление булочки', function () {
-    cy.get('[data-cy=constructor]').contains('Краторная булка N-200i').should('not.exist');
-    cy.get('[data-cy=bun-ingredients]').contains('Добавить').click();
-    cy.get('[data-cy=constructor-bun-1]').contains('Краторная булка N-200i').should('exist');
-    cy.get('[data-cy=constructor-bun-2]').contains('Краторная булка N-200i').should('exist');
-  });
-  it('добавление ингредиентов', function () {
-    cy.get('[data-cy=constructor]').contains('Биокотлета из марсианской Магнолии').should('not.exist');
-    cy.get('[data-cy=constructor]').contains('Соус Spicy-X').should('not.exist');
-    cy.get('[data-cy=main-ingredients]').contains('Добавить').click();
-    cy.get('[data-cy=sauce-ingredients]').contains('Добавить').click();
-    cy.get('[data-cy=constructor]').contains('Биокотлета из марсианской Магнолии').should('exist');
-    cy.get('[data-cy=constructor]').contains('Соус Spicy-X').should('exist');
-  });
-});
+const TEST_URL = 'http://localhost:4000';
 
-describe('работа модального окна', function () {
-  beforeEach(function () {
-    cy.intercept('GET', 'api/ingredients', { fixture: 'ingredients.json' });
-    cy.viewport(1920, 1080);
-    cy.visit('http://localhost:4000');
-  });
-  it('открытие модального окна', function () {
-    cy.contains('Детали ингредиента').should('not.exist');
-    cy.contains('Краторная булка N-200i').click();
-    cy.contains('Детали ингредиента').should('exist');
-    cy.get('#modals').contains('Краторная булка N-200i').should('exist');
-  });
-  it('закрытие модального окна нажатием на крестик', function () {
-    cy.contains('Детали ингредиента').should('not.exist');
-    cy.contains('Краторная булка N-200i').click();
-    cy.contains('Детали ингредиента').should('exist');
-    cy.get('#modals button[aria-label="Закрыть"]').click();
-    cy.contains('Детали ингредиента').should('not.exist');
-  });
-  it('закрытие модального окна кликом на оверлей', function () {
-    cy.contains('Детали ингредиента').should('not.exist');
-    cy.contains('Краторная булка N-200i').click();
-    cy.contains('Детали ингредиента').should('exist');
-    cy.get('[data-cy=modal-overlay]').click('top', { force: true });
-    cy.contains('Детали ингредиента').should('not.exist');
-  });
-});
+const SELECTORS = {
+  MODAL: '#modals',
+  MODAL_CLOSE: '#modals button',
+  CONSTRUCTOR_SECTION: 'section',
+  ORDER_BUTTON: 'Оформить заказ',
+  INGREDIENT_ACTION: '.constructor-element__action'
+};
 
-describe('создание заказа', function () {
-  beforeEach(function () {
-    cy.intercept('GET', 'api/ingredients', { fixture: 'ingredients.json' });
-    cy.intercept('GET', 'api/auth/user', { fixture: 'user.json' });
-    cy.intercept('POST', 'api/orders', { fixture: 'order.json' });
-    window.localStorage.setItem(
-      'refreshToken',
-      JSON.stringify('test-refresh-token')
-    );
-    cy.setCookie('accessToken', 'test-access-token');
-    cy.viewport(1920, 1080);
-    cy.visit('http://localhost:4000');
+const INGREDIENTS = {
+  BUN: 'Флюоресцентная булка R2-D3',
+  MAIN: 'Говяжий метеорит (отбивная)'
+};
+
+describe('Страница конструктора', () => {
+  describe('Без авторизации', () => {
+    beforeEach(() => {
+      cy.intercept('GET', '/api/ingredients', {
+        fixture: 'ingredients.json'
+      }).as('getIngredients');
+
+      cy.visit(TEST_URL);
+    });
+
+    describe('Сборка бургера', () => {
+      it('Должен добавлять ингредиенты в конструктор', () => {
+        cy.contains(INGREDIENTS.MAIN).parent().find('button').click();
+        cy.contains(INGREDIENTS.BUN).parent().find('button').click();
+
+        cy.contains(SELECTORS.ORDER_BUTTON)
+          .parent()
+          .parent(SELECTORS.CONSTRUCTOR_SECTION)
+          .within(() => {
+            cy.contains(INGREDIENTS.MAIN).should('exist');
+            cy.contains(INGREDIENTS.BUN).should('exist');
+            cy.contains('4976').should('exist');
+          });
+      });
+
+      it('Должен удалять начинку из конструктора', () => {
+        cy.contains(INGREDIENTS.MAIN).parent().find('button').click();
+        cy.contains(INGREDIENTS.BUN).parent().find('button').click();
+
+        cy.contains(SELECTORS.ORDER_BUTTON)
+          .parent()
+          .parent(SELECTORS.CONSTRUCTOR_SECTION)
+          .within(() => {
+            cy.contains(INGREDIENTS.MAIN)
+              .parent()
+              .find(SELECTORS.INGREDIENT_ACTION)
+              .click();
+
+            cy.contains('1976').should('exist'); // цена только булки * 2
+          });
+      });
+    });
+
+    describe('Модальное окно ингредиента', () => {
+      beforeEach(() => {
+        cy.contains(INGREDIENTS.MAIN).parent().click();
+      });
+
+      it('Открывает модалку по клику', () => {
+        cy.get(SELECTORS.MODAL).contains(INGREDIENTS.MAIN).should('exist');
+      });
+
+      it('Закрывает модалку по крестику', () => {
+        cy.get(SELECTORS.MODAL_CLOSE).click();
+        cy.get(SELECTORS.MODAL).should('not.contain.html');
+      });
+
+      it('Закрывает модалку по клику вне окна', () => {
+        cy.get(SELECTORS.MODAL).parent().click('topRight');
+      });
+    });
   });
-  this.afterEach(function () {
-    cy.clearAllLocalStorage();
-    cy.clearCookies();
-  });
-  it('создание заказа бургера', function () {
-    cy.get('[data-cy=constructor]').contains('Краторная булка N-200i').should('not.exist');
-    cy.get('[data-cy=constructor]').contains('Соус Spicy-X').should('not.exist');
-    cy.get('[data-cy=constructor]').contains('Биокотлета из марсианской Магнолии').should('not.exist');
-    cy.get('[data-cy=bun-ingredients]').contains('Добавить').click();
-    cy.get('[data-cy=main-ingredients]').contains('Добавить').click();
-    cy.get('[data-cy=sauce-ingredients]').contains('Добавить').click();
-    cy.get('[data-cy=constructor]').contains('Краторная булка N-200i').should('exist');
-    cy.get('[data-cy=constructor]').contains('Соус Spicy-X').should('exist');
-    cy.get('[data-cy=constructor]').contains('Биокотлета из марсианской Магнолии').should('exist');
-    cy.get('[data-cy=order-number]').should('not.exist');
-    cy.get('[data-cy=order-button]').contains('Оформить заказ').click();
-    cy.get('[data-cy=order-number]').contains('123').should('exist');
-    cy.get('#modals button[aria-label="Закрыть"]').click();
-    cy.get('[data-cy=order-number]').should('not.exist');
-    cy.get('[data-cy=constructor]').contains('Краторная булка N-200i').should('not.exist');
-    cy.get('[data-cy=constructor]').contains('Соус Spicy-X').should('not.exist');
-    cy.get('[data-cy=constructor]').contains('Биокотлета из марсианской Магнолии').should('not.exist');
+
+  describe('С авторизацией', () => {
+    beforeEach(() => {
+      cy.setCookie('accessToken', 'testAccessToken');
+
+      cy.window().then((win) => {
+        win.localStorage.setItem('refreshToken', 'testRefresh');
+      });
+
+      cy.intercept('GET', '/api/auth/user', {
+        fixture: 'user.json'
+      }).as('getUser');
+
+      cy.intercept('GET', '/api/ingredients', {
+        fixture: 'ingredients.json'
+      }).as('getIngredients');
+
+      cy.visit(TEST_URL);
+    });
+
+    afterEach(() => {
+      cy.clearCookie('accessToken');
+
+      cy.window().then((win) => {
+        win.localStorage.removeItem('refreshToken');
+      });
+    });
+
+    it('Оформляет заказ и показывает номер', () => {
+      cy.intercept('POST', '/api/orders', {
+        fixture: 'order.json',
+        delay: 100
+      }).as('postOrder');
+
+      cy.contains(INGREDIENTS.MAIN).parent().find('button').click();
+      cy.contains(INGREDIENTS.BUN).parent().find('button').click();
+
+      cy.contains(SELECTORS.ORDER_BUTTON).click();
+      cy.contains('Оформляем заказ...').should('exist');
+
+      cy.wait('@postOrder').then(() => {
+        cy.get(SELECTORS.MODAL).contains('79183').should('exist');
+        cy.get(SELECTORS.MODAL).parent().click('topRight');
+        cy.get(SELECTORS.MODAL).should('not.contain.html');
+
+        cy.contains('Выберите булки').should('exist');
+        cy.contains('Выберите начинку').should('exist');
+
+        cy.contains(SELECTORS.ORDER_BUTTON).parent().contains('0').should('exist');
+      });
+    });
   });
 });

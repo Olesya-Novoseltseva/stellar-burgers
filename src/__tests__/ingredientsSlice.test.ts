@@ -3,14 +3,9 @@ import ingredientsSliceReducer, {
   IngredientsState
 } from '../services/slices/ingredientsSlice';
 import { expect, test, describe } from '@jest/globals';
+import { initialState } from '../services/slices/ingredientsSlice';
 
 describe('ingredientsSlice extraReducers', () => {
-  const initialState: IngredientsState = {
-    isLoading: false,
-    ingredients: [],
-    error: null
-  };
-
   const mockIngredients = [
     {
       _id: '643d69a5c3f7b9001cfa0940',
@@ -30,7 +25,7 @@ describe('ingredientsSlice extraReducers', () => {
 
   test('fetchIngredients.pending', () => {
     const actualState = ingredientsSliceReducer(
-      { ...initialState },
+      initialState,
       fetchIngredients.pending('')
     );
     expect(actualState.isLoading).toBe(true);
@@ -40,7 +35,7 @@ describe('ingredientsSlice extraReducers', () => {
   test('fetchIngredients.rejected', () => {
     const errorMessage = 'Test error';
     const actualState = ingredientsSliceReducer(
-      { ...initialState },
+      initialState,
       fetchIngredients.rejected(new Error(errorMessage), '')
     );
     expect(actualState.isLoading).toBe(false);
@@ -49,9 +44,7 @@ describe('ingredientsSlice extraReducers', () => {
 
   test('fetchIngredients.fulfilled', () => {
     const actualState = ingredientsSliceReducer(
-      {
-        ...initialState
-      },
+      initialState,
       fetchIngredients.fulfilled(mockIngredients, '')
     );
     expect(actualState.isLoading).toBe(false);

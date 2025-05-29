@@ -7,7 +7,7 @@ import {
   Profile,
   ProfileOrders,
   Register,
-  ResetPassword
+  ResetPassword,
 } from '@pages';
 import '../../index.css';
 import styles from './app.module.css';
@@ -44,10 +44,10 @@ const App = () => {
     <div className={styles.app}>
       <AppHeader />
       <Routes location={background || location}>
-        <Route path='/' element={<ConstructorPage />} />
-        <Route path='/feed' element={<Feed />} />
+        <Route path="/" element={<ConstructorPage />} />
+        <Route path="/feed" element={<Feed />} />
         <Route
-          path='/feed/:number'
+          path="/feed/:number"
           element={
             <div className={styles.detailPageWrap}>
               <OrderInfo />
@@ -55,17 +55,17 @@ const App = () => {
           }
         />
         <Route
-          path='/ingredients/:id'
+          path="/ingredients/:id"
           element={
             <div className={`${styles.detailPageWrap} ${styles.detailHeader}`}>
-              <h3 className='text text_type_main-large'>Детали ингредиента</h3>
+              <h3 className="text text_type_main-large">Детали ингредиента</h3>
               <IngredientDetails />
             </div>
           }
         />
-        <Route path='*' element={<NotFound404 />} />
+        <Route path="*" element={<NotFound404 />} />
         <Route
-          path='/login'
+          path="/login"
           element={
             <ProtectedRoute onlyUnAuth>
               <Login />
@@ -73,7 +73,7 @@ const App = () => {
           }
         />
         <Route
-          path='/register'
+          path="/register"
           element={
             <ProtectedRoute onlyUnAuth>
               <Register />
@@ -81,7 +81,7 @@ const App = () => {
           }
         />
         <Route
-          path='/forgot-password'
+          path="/forgot-password"
           element={
             <ProtectedRoute onlyUnAuth>
               <ForgotPassword />
@@ -89,7 +89,7 @@ const App = () => {
           }
         />
         <Route
-          path='/reset-password'
+          path="/reset-password"
           element={
             <ProtectedRoute onlyUnAuth>
               <ResetPassword />
@@ -97,7 +97,7 @@ const App = () => {
           }
         />
         <Route
-          path='/profile'
+          path="/profile"
           element={
             <ProtectedRoute>
               <Profile />
@@ -105,7 +105,7 @@ const App = () => {
           }
         />
         <Route
-          path='/profile/orders'
+          path="/profile/orders"
           element={
             <ProtectedRoute>
               <ProfileOrders />
@@ -113,7 +113,7 @@ const App = () => {
           }
         />
         <Route
-          path='/profile/orders/:number'
+          path="/profile/orders/:number"
           element={
             <ProtectedRoute>
               <div className={styles.detailPageWrap}>
@@ -123,31 +123,30 @@ const App = () => {
           }
         />
       </Routes>
-      {/* ОТДЕЛЬНЫЕ НОВЫЕ МАРШРУТЫ ДЛЯ МОДАЛОК */}
 
       {background && (
         <Routes>
           <Route
-            path='/feed/:number'
+            path="/feed/:number"
             element={
-              <Modal title='' onClose={() => navigate(-1)}>
+              <Modal title="" onClose={() => navigate(-1)}>
                 <OrderInfo />
               </Modal>
             }
           />
           <Route
-            path='/ingredients/:id'
+            path="/ingredients/:id"
             element={
-              <Modal title='Детали ингредиента' onClose={() => navigate(-1)}>
+              <Modal title="Детали ингредиента" onClose={() => navigate(-1)}>
                 <IngredientDetails />
               </Modal>
             }
           />
           <Route
-            path='/profile/orders/:number'
+            path="/profile/orders/:number"
             element={
               <ProtectedRoute>
-                <Modal title='' onClose={() => navigate(-1)}>
+                <Modal title="" onClose={() => navigate(-1)}>
                   <OrderInfo />
                 </Modal>
               </ProtectedRoute>

@@ -1,14 +1,9 @@
 {
-  // расширяем основной конфиг всего проекта
+  "$schema": "./tsconfig.schema.json",
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    "noEmit": true,
-    // явно указываем что будем использовать типы из cypress
-    // чтобы избежать пересечения с типами jest, если мы его используем
-    "types": ["cypress"]
+    "isolatedModules": false,
+    "types": ["cypress", "node"]
   },
-  "include": [
-    "../node_modules/cypress",
-    "./**/*.ts"
-  ]
+  "include": ["**/*.ts"]
 }

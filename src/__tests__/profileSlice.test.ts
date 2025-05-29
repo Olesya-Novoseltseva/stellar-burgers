@@ -7,21 +7,26 @@ import userSliceReducer, {
   registerUser,
   resetPassword,
   updateUser,
-  UserState
+  initialState
 } from '../services/slices/profileSlice';
 
 describe('userSlice extraReducers', () => {
-  const initialState: UserState = {
-    isAuthenticated: false,
-    isLoading: false,
-    user: null,
-    loginError: undefined,
-    registrationError: undefined
+  const mockUser = {
+    email: 'olesya.n2003@gmail.com',
+    name: 'Olesya'
+  };
+
+  const mockUserResponse = {
+    user: {
+      email: 'test@gmail.com',
+      name: 'Иван Иванов'
+    },
+    success: true
   };
 
   test('loginUserThunk.pending', () => {
     const actualState = userSliceReducer(
-      { ...initialState },
+      initialState,
       loginUser.pending('', { email: '', password: '' })
     );
     expect(actualState.isLoading).toBe(true);
@@ -30,7 +35,7 @@ describe('userSlice extraReducers', () => {
   test('loginUserThunk.rejected', () => {
     const errorMessage = 'Test error';
     const actualState = userSliceReducer(
-      { ...initialState },
+      initialState,
       loginUser.rejected(new Error(errorMessage), '', {
         email: '',
         password: ''
@@ -41,14 +46,8 @@ describe('userSlice extraReducers', () => {
   });
 
   test('loginUserThunk.fulfilled', () => {
-    const mockUser = {
-      email: 'olesya.n2003@gmail.com',
-      name: 'Olesya'
-    };
     const actualState = userSliceReducer(
-      {
-        ...initialState
-      },
+      initialState,
       loginUser.fulfilled(mockUser, '', { email: '', password: '' })
     );
     expect(actualState.isLoading).toBe(false);
@@ -58,7 +57,7 @@ describe('userSlice extraReducers', () => {
 
   test('getUserThunk.pending', () => {
     const actualState = userSliceReducer(
-      { ...initialState },
+      initialState,
       getUser.pending('')
     );
     expect(actualState.isLoading).toBe(true);
@@ -67,7 +66,7 @@ describe('userSlice extraReducers', () => {
   test('getUserThunk.rejected', () => {
     const errorMessage = 'Test error';
     const actualState = userSliceReducer(
-      { ...initialState },
+      initialState,
       getUser.rejected(new Error(errorMessage), '')
     );
     expect(actualState.isLoading).toBe(false);
@@ -76,17 +75,8 @@ describe('userSlice extraReducers', () => {
   });
 
   test('getUserThunk.fulfilled', () => {
-    const mockUserResponse = {
-      user: {
-        email: 'test@gmail.com',
-        name: 'Иван Иванов'
-      },
-      success: true
-    };
     const actualState = userSliceReducer(
-      {
-        ...initialState
-      },
+      initialState,
       getUser.fulfilled(mockUserResponse, '')
     );
     expect(actualState.isLoading).toBe(false);
@@ -97,7 +87,7 @@ describe('userSlice extraReducers', () => {
 
   test('registerUserThunk.pending', () => {
     const actualState = userSliceReducer(
-      { ...initialState },
+      initialState,
       registerUser.pending('', { email: '', name: '', password: '' })
     );
     expect(actualState.isLoading).toBe(true);
@@ -106,7 +96,7 @@ describe('userSlice extraReducers', () => {
   test('registerUserThunk.rejected', () => {
     const errorMessage = 'Test error';
     const actualState = userSliceReducer(
-      { ...initialState },
+      initialState,
       registerUser.rejected(new Error(errorMessage), '', {
         email: '',
         name: '',
@@ -118,14 +108,8 @@ describe('userSlice extraReducers', () => {
   });
 
   test('registerUserThunk.fulfilled', () => {
-    const mockUser = {
-      email: 'olesya.n2003@gmail.com',
-      name: 'Olesya'
-    };
     const actualState = userSliceReducer(
-      {
-        ...initialState
-      },
+      initialState,
       registerUser.fulfilled(mockUser, '', {
         email: '',
         name: '',
@@ -139,7 +123,7 @@ describe('userSlice extraReducers', () => {
 
   test('logoutUserThunk.pending', () => {
     const actualState = userSliceReducer(
-      { ...initialState },
+      initialState,
       logoutUser.pending('')
     );
     expect(actualState.isLoading).toBe(true);
@@ -148,7 +132,7 @@ describe('userSlice extraReducers', () => {
   test('logoutUserThunk.rejected', () => {
     const errorMessage = 'Test error';
     const actualState = userSliceReducer(
-      { ...initialState },
+      initialState,
       logoutUser.rejected(new Error(errorMessage), '')
     );
     expect(actualState.isLoading).toBe(false);
@@ -157,9 +141,7 @@ describe('userSlice extraReducers', () => {
 
   test('logoutUserThunk.fulfilled', () => {
     const actualState = userSliceReducer(
-      {
-        ...initialState
-      },
+      initialState,
       logoutUser.fulfilled({ success: true }, '')
     );
     expect(actualState.isLoading).toBe(false);
@@ -169,7 +151,7 @@ describe('userSlice extraReducers', () => {
 
   test('forgotPasswordThunk.pending', () => {
     const actualState = userSliceReducer(
-      { ...initialState },
+      initialState,
       forgotPassword.pending('', { email: '', password: '' })
     );
     expect(actualState.isLoading).toBe(true);
@@ -178,7 +160,7 @@ describe('userSlice extraReducers', () => {
   test('forgotPasswordThunk.rejected', () => {
     const errorMessage = 'Test error';
     const actualState = userSliceReducer(
-      { ...initialState },
+      initialState,
       forgotPassword.rejected(new Error(errorMessage), '', {
         email: '',
         password: ''
@@ -190,9 +172,7 @@ describe('userSlice extraReducers', () => {
 
   test('forgotPasswordThunk.fulfilled', () => {
     const actualState = userSliceReducer(
-      {
-        ...initialState
-      },
+      initialState,
       forgotPassword.fulfilled({ success: true }, '', {
         email: '',
         password: ''
@@ -204,7 +184,7 @@ describe('userSlice extraReducers', () => {
 
   test('resetPasswordThunk.pending', () => {
     const actualState = userSliceReducer(
-      { ...initialState },
+      initialState,
       resetPassword.pending('', { token: '', password: '' })
     );
     expect(actualState.isLoading).toBe(true);
@@ -213,7 +193,7 @@ describe('userSlice extraReducers', () => {
   test('resetPasswordThunk.rejected', () => {
     const errorMessage = 'Test error';
     const actualState = userSliceReducer(
-      { ...initialState },
+      initialState,
       resetPassword.rejected(new Error(errorMessage), '', {
         token: '',
         password: ''
@@ -225,9 +205,7 @@ describe('userSlice extraReducers', () => {
 
   test('resetPasswordThunk.fulfilled', () => {
     const actualState = userSliceReducer(
-      {
-        ...initialState
-      },
+      initialState,
       resetPassword.fulfilled({ success: true }, '', {
         token: '',
         password: ''
@@ -239,7 +217,7 @@ describe('userSlice extraReducers', () => {
 
   test('updateUserThunk.pending', () => {
     const actualState = userSliceReducer(
-      { ...initialState },
+      initialState,
       updateUser.pending('', { email: '', name: '', password: '' })
     );
     expect(actualState.isLoading).toBe(true);
@@ -248,7 +226,7 @@ describe('userSlice extraReducers', () => {
   test('updateUserThunk.rejected', () => {
     const errorMessage = 'Test error';
     const actualState = userSliceReducer(
-      { ...initialState },
+      initialState,
       updateUser.rejected(new Error(errorMessage), '', {
         email: '',
         name: '',
@@ -261,14 +239,8 @@ describe('userSlice extraReducers', () => {
   });
 
   test('updateUserThunk.fulfilled', () => {
-    const mockUser = {
-      email: 'olesya.n2003@gmail.com',
-      name: 'Olesya'
-    };
     const actualState = userSliceReducer(
-      {
-        ...initialState
-      },
+      initialState,
       updateUser.fulfilled(mockUser, '', {
         email: '',
         name: '',

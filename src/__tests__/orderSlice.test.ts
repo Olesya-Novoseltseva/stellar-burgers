@@ -2,24 +2,13 @@ import { expect, test, describe } from '@jest/globals';
 import orderSliceReducer, {
   fetchOrders,
   getOrderByNumber,
-  OrderState
+  initialState
 } from '../services/slices/orderSlice';
 
 describe('orderSlice extraReducers', () => {
-  const initialState: OrderState = {
-    isFeedLoading: false,
-    isShownLoading: false,
-    feedOrders: [],
-    shownOrders: [],
-    error: null,
-    total: null,
-    totalToday: null,
-    orderStatus: ''
-  };
-
   test('fetchOrders.pending', () => {
     const actualState = orderSliceReducer(
-      { ...initialState },
+      initialState,
       fetchOrders.pending('')
     );
     expect(actualState.isFeedLoading).toBe(true);
@@ -28,7 +17,7 @@ describe('orderSlice extraReducers', () => {
   test('fetchOrders.rejected', () => {
     const errorMessage = 'Test error';
     const actualState = orderSliceReducer(
-      { ...initialState },
+      initialState,
       fetchOrders.rejected(new Error(errorMessage), '')
     );
     expect(actualState.isFeedLoading).toBe(false);
@@ -53,9 +42,7 @@ describe('orderSlice extraReducers', () => {
       totalToday: 204
     };
     const actualState = orderSliceReducer(
-      {
-        ...initialState
-      },
+      initialState,
       fetchOrders.fulfilled(mockOrdersData, '')
     );
     expect(actualState.isFeedLoading).toBe(false);
@@ -67,7 +54,7 @@ describe('orderSlice extraReducers', () => {
 
   test('getOrderByNumberThunk.pending', () => {
     const actualState = orderSliceReducer(
-      { ...initialState },
+      initialState,
       getOrderByNumber.pending('', 79183)
     );
     expect(actualState.isShownLoading).toBe(true);
@@ -76,7 +63,7 @@ describe('orderSlice extraReducers', () => {
   test('getOrderByNumberThunk.rejected', () => {
     const errorMessage = 'Test error';
     const actualState = orderSliceReducer(
-      { ...initialState },
+      initialState,
       getOrderByNumber.rejected(new Error(errorMessage), '', 79183)
     );
     expect(actualState.isShownLoading).toBe(false);
@@ -95,9 +82,7 @@ describe('orderSlice extraReducers', () => {
       ingredients: ['643d69a5c3f7b9001cfa093d', '643d69a5c3f7b9001cfa0940', '643d69a5c3f7b9001cfa093d']
     };
     const actualState = orderSliceReducer(
-      {
-        ...initialState
-      },
+      initialState,
       getOrderByNumber.fulfilled([mockOrder], '', 79183)
     );
     expect(actualState.isShownLoading).toBe(false);

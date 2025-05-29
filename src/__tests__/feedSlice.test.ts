@@ -3,17 +3,12 @@ import userOrderSliceReducer, {
   fetchFeeds,
   IFeedState
 } from '../services/slices/feedSlice';
+import { initialState } from '../services/slices/feedSlice';
 
 describe('userOrderSlice extraReducers', () => {
-  const initialState: IFeedState = {
-    isLoading: false,
-    orders: [],
-    error: null
-  };
-
   test('fetchUserOrders.pending', () => {
     const actualState = userOrderSliceReducer(
-      { ...initialState },
+      initialState,
       fetchFeeds.pending('')
     );
     expect(actualState.isLoading).toBe(true);
@@ -22,7 +17,7 @@ describe('userOrderSlice extraReducers', () => {
   test('fetchUserOrders.rejected', () => {
     const errorMessage = 'Test error';
     const actualState = userOrderSliceReducer(
-      { ...initialState },
+      initialState,
       fetchFeeds.rejected(new Error(errorMessage), '')
     );
     expect(actualState.isLoading).toBe(false);
@@ -41,9 +36,7 @@ describe('userOrderSlice extraReducers', () => {
       ingredients: ['643d69a5c3f7b9001cfa093d', '643d69a5c3f7b9001cfa0940', '643d69a5c3f7b9001cfa093d']
     };
     const actualState = userOrderSliceReducer(
-      {
-        ...initialState
-      },
+      initialState,
       fetchFeeds.fulfilled([mockOrder], '')
     );
     expect(actualState.isLoading).toBe(false);

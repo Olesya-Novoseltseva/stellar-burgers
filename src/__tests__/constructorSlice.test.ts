@@ -9,6 +9,7 @@ import burgerConstructorSliceReducer, {
   addBun
 } from '../services/slices/constructorSlice';
 import { expect, test, describe } from '@jest/globals';
+import { initialState } from '../services/slices/constructorSlice';
 
 describe('burgerConstructorSlice', () => {
   const ingredient1: TConstructorIngredient = {
@@ -40,16 +41,6 @@ describe('burgerConstructorSlice', () => {
     image_large: 'https://code.s3.yandex.net/react/code/bun-01-large.png'
   };
 
-  const initialState: IConstructorState = {
-    constructorItems: {
-      bun: null,
-      ingredients: []
-    },
-    orderRequest: false,
-    orderModalData: null,
-    error: null
-  };
-
   test('добавление ингредиента', () => {
     const newState = burgerConstructorSliceReducer(
       initialState,
@@ -70,34 +61,30 @@ describe('burgerConstructorSlice', () => {
   });
 
   test('удаление ингредиента', () => {
-    const initialState: IConstructorState = {
+    const stateWithIngredient: IConstructorState = {
+      ...initialState,
       constructorItems: {
-        bun: null,
+        ...initialState.constructorItems,
         ingredients: [ingredient1]
-      },
-      orderRequest: false,
-      orderModalData: null,
-      error: null
+      }
     };
     const newState = burgerConstructorSliceReducer(
-      initialState,
+      stateWithIngredient,
       removeIngredient(ingredient1.id)
     );
     expect(newState.constructorItems.ingredients).toHaveLength(0);
   });
 
   test('перемещение ингредиента вверх', () => {
-    const initialState: IConstructorState = {
+    const stateWithIngredients: IConstructorState = {
+      ...initialState,
       constructorItems: {
-        bun: null,
+        ...initialState.constructorItems,
         ingredients: [ingredient1, ingredient1]
-      },
-      orderRequest: false,
-      orderModalData: null,
-      error: null
+      }
     };
     const newState = burgerConstructorSliceReducer(
-      initialState,
+      stateWithIngredients,
       moveIngredientUp(ingredient1.id)
     );
     expect(newState.constructorItems.ingredients).toEqual([
@@ -107,17 +94,15 @@ describe('burgerConstructorSlice', () => {
   });
 
   test('перемещение ингредиента вниз', () => {
-    const initialState: IConstructorState = {
+    const stateWithIngredients: IConstructorState = {
+      ...initialState,
       constructorItems: {
-        bun: null,
+        ...initialState.constructorItems,
         ingredients: [ingredient1, ingredient1]
-      },
-      orderRequest: false,
-      orderModalData: null,
-      error: null
+      }
     };
     const newState = burgerConstructorSliceReducer(
-      initialState,
+      stateWithIngredients,
       moveIngredientDown(ingredient1.id)
     );
     expect(newState.constructorItems.ingredients).toEqual([
@@ -128,7 +113,8 @@ describe('burgerConstructorSlice', () => {
 });
 
 describe('burgerConstructorSlice extraReducers', () => {
-  const initialState: IConstructorState = {
+  const stateWithItems: IConstructorState = {
+    ...initialState,
     constructorItems: {
       bun: {
         _id: '643d69a5c3f7b9001cfa093d',
@@ -159,15 +145,12 @@ describe('burgerConstructorSlice extraReducers', () => {
           image_large: 'https://code.s3.yandex.net/react/code/meat-04-large.png'
         }
       ]
-    },
-    orderRequest: false,
-    orderModalData: null,
-    error: null
+    }
   };
 
   test('orderThunk.pending', () => {
     const actualState = burgerConstructorSliceReducer(
-      { ...initialState },
+      stateWithItems,
       orderThunk.pending('', [])
     );
     expect(actualState.orderRequest).toBe(true);
@@ -177,7 +160,7 @@ describe('burgerConstructorSlice extraReducers', () => {
   test('orderThunk.rejected', () => {
     const errorMessage = 'Test error';
     const actualState = burgerConstructorSliceReducer(
-      { ...initialState },
+      stateWithItems,
       orderThunk.rejected(new Error(errorMessage), '', [])
     );
     expect(actualState.orderRequest).toBe(false);
@@ -192,7 +175,7 @@ describe('burgerConstructorSlice extraReducers', () => {
       status: 'done',
       createdAt: '2025-05-28T03:18:10.871Z',
       updatedAt: '2025-05-28T03:18:11.442Z',
-      number: 123,
+      number: 79183,
       ingredients: [
         '643d69a5c3f7b9001cfa093d',
         '643d69a5c3f7b9001cfa0940',
@@ -201,7 +184,7 @@ describe('burgerConstructorSlice extraReducers', () => {
     };
     const actualState = burgerConstructorSliceReducer(
       {
-        ...initialState,
+        ...stateWithItems,
         orderRequest: true
       },
       orderThunk.fulfilled(mockOrder, '', [])
