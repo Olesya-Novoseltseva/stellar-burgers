@@ -8,7 +8,6 @@ import { Preloader } from '../../components/ui';
 import { FC } from 'react';
 
 export const ConstructorPage: FC = () => {
-  /** TODO: взять переменную из стора */
   const isIngredientsLoading = false;
 
   return (
@@ -24,7 +23,7 @@ export const ConstructorPage: FC = () => {
           </h1>
           <div className={`${styles.main} pl-5 pr-5`}>
             <BurgerIngredients />
-            <BurgerConstructor />
+            <BurgerConstructor data-cy='constructor' />
           </div>
         </main>
       )}

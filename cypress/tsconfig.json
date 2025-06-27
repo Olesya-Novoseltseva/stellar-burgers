@@ -1,0 +1,9 @@
+{
+  "$schema": "./tsconfig.schema.json",
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "isolatedModules": false,
+    "types": ["cypress", "node"]
+  },
+  "include": ["**/*.ts"]
+}
